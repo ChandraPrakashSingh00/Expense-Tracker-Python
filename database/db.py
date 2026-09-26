@@ -104,6 +104,54 @@ def create_user(name, email, password):
 
 
 # ------------------------------------------------------------------ #
+# Expenses                                                            #
+# ------------------------------------------------------------------ #
+
+def get_expense_totals(user_id, start=None, end=None):
+    # With start/end (YYYY-MM-DD), only counts start <= date < end
+    conn = get_db()
+    try:
+        if start is None:
+            return conn.execute(
+                "SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total "
+                "FROM expenses WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+        return conn.execute(
+            "SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total "
+            "FROM expenses WHERE user_id = ? AND date >= ? AND date < ?",
+            (user_id, start, end),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def get_category_totals(user_id):
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT category, SUM(amount) AS total, COUNT(*) AS count "
+            "FROM expenses WHERE user_id = ? "
+            "GROUP BY category ORDER BY total DESC",
+            (user_id,),
+        ).fetchall()
+    finally:
+        conn.close()
+
+
+def get_recent_expenses(user_id, limit=5):
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT id, amount, category, date, description FROM expenses "
+            "WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT ?",
+            (user_id, limit),
+        ).fetchall()
+    finally:
+        conn.close()
+
+
+# ------------------------------------------------------------------ #
 # Development seed data                                               #
 # ------------------------------------------------------------------ #
 

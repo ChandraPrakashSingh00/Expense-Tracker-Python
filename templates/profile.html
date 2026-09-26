@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Your profile — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="profile-section">
+    <div class="profile-container">
+
+        {% with messages = get_flashed_messages(category_filter=["success"]) %}
+        {% for message in messages %}
+        <div class="auth-success">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+
+        <div class="profile-header">
+            <div class="profile-avatar" aria-hidden="true">{{ initials }}</div>
+            <div class="profile-identity">
+                <h1 class="profile-name">{{ g.user['name'] }}</h1>
+                <p class="profile-email">{{ g.user['email'] }}</p>
+                <p class="profile-since">Member since {{ member_since | date_label }}</p>
+            </div>
+        </div>
+
+        <div class="profile-stats">
+            <div class="stat-card">
+                <span class="stat-label">This month</span>
+                <span class="stat-value">{{ this_month['total'] | inr }}</span>
+                <span class="stat-meta">
+                    {{ this_month['count'] }} expense{{ '' if this_month['count'] == 1 else 's' }} in {{ month_label }}
+                </span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">All time</span>
+                <span class="stat-value">{{ all_time['total'] | inr }}</span>
+                <span class="stat-meta">
+                    {{ all_time['count'] }} expense{{ '' if all_time['count'] == 1 else 's' }} logged
+                </span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Top category</span>
+                {% if categories %}
+                <span class="stat-value">{{ categories[0]['category'] }}</span>
+                <span class="stat-meta">{{ categories[0]['total'] | inr }} spent</span>
+                {% else %}
+                <span class="stat-value">—</span>
+                <span class="stat-meta">Nothing yet</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if categories %}
+        <div class="profile-grid">
+            <div class="profile-card">
+                <h2 class="profile-card-title">Spending by category</h2>
+                <div class="category-list">
+                    {% for cat in categories %}
+                    <div class="category-row">
+                        <span class="category-name">{{ cat['category'] }}</span>
+                        <div class="mock-bar-track">
+                            <div class="mock-bar {{ loop.cycle('', 'mock-bar-2', 'mock-bar-3', 'mock-bar-4') }}"
+                                 style="width: {{ (cat['total'] / categories[0]['total'] * 100) | round(1) }}%"></div>
+                        </div>
+                        <span class="category-amount">{{ cat['total'] | inr }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h2 class="profile-card-title">Recent expenses</h2>
+                <ul class="expense-list">
+                    {% for expense in recent %}
+                    <li class="expense-item">
+                        <div class="expense-info">
+                            <span class="expense-desc">{{ expense['description'] or expense['category'] }}</span>
+                            <span class="expense-meta">{{ expense['category'] }} · {{ expense['date'] | date_label }}</span>
+                        </div>
+                        <span class="expense-amount">{{ expense['amount'] | inr }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <div class="profile-card profile-empty">
+            <h2 class="profile-card-title">No expenses yet</h2>
+            <p>Once you start adding expenses, your spending by category and recent activity will show up here.</p>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+{% endblock %}

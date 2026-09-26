@@ -64,6 +64,46 @@ def init_db():
 
 
 # ------------------------------------------------------------------ #
+# Users                                                               #
+# ------------------------------------------------------------------ #
+
+def get_user_by_id(user_id):
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT id, name, email, created_at FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def get_user_by_email(email):
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT id, name, email, password_hash, created_at "
+            "FROM users WHERE email = ?",
+            (email,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def create_user(name, email, password):
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            (name, email, generate_password_hash(password)),
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
+# ------------------------------------------------------------------ #
 # Development seed data                                               #
 # ------------------------------------------------------------------ #
 
